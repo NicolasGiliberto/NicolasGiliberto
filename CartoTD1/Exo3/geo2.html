@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test d'Orientation et de Mouvement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .data {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Orientation et Mouvement du Smartphone</h1>
+    
+    <div class="data">
+        <h2>Orientation (DeviceOrientation)</h2>
+        <p><strong>Alpha:</strong> <span id="alpha">0</span>°</p>
+        <p><strong>Beta:</strong> <span id="beta">0</span>°</p>
+        <p><strong>Gamma:</strong> <span id="gamma">0</span>°</p>
+    </div>
+
+    <div class="data">
+        <h2>Mouvement (DeviceMotion)</h2>
+        <p><strong>Accélération X:</strong> <span id="accelX">0</span> m/s²</p>
+        <p><strong>Accélération Y:</strong> <span id="accelY">0</span> m/s²</p>
+        <p><strong>Accélération Z:</strong> <span id="accelZ">0</span> m/s²</p>
+        <p><strong>Vitesse angulaire Alpha:</strong> <span id="rotAlpha">0</span>°/s</p>
+        <p><strong>Vitesse angulaire Beta:</strong> <span id="rotBeta">0</span>°/s</p>
+        <p><strong>Vitesse angulaire Gamma:</strong> <span id="rotGamma">0</span>°/s</p>
+    </div>
+
+    <script>
+        // Vérifier si l'appareil supporte DeviceOrientationEvent
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function(event) {
+                // Récupérer les valeurs alpha, beta, gamma
+                document.getElementById('alpha').textContent = event.alpha.toFixed(2);
+                document.getElementById('beta').textContent = event.beta.toFixed(2);
+                document.getElementById('gamma').textContent = event.gamma.toFixed(2);
+            }, true);
+        } else {
+            alert("DeviceOrientationEvent non supporté sur cet appareil.");
+        }
+
+        // Vérifier si l'appareil supporte DeviceMotionEvent
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', function(event) {
+                // Accélération linéaire (en m/s²)
+                document.getElementById('accelX').textContent = event.acceleration.x ? event.acceleration.x.toFixed(2) : 0;
+                document.getElementById('accelY').textContent = event.acceleration.y ? event.acceleration.y.toFixed(2) : 0;
+                document.getElementById('accelZ').textContent = event.acceleration.z ? event.acceleration.z.toFixed(2) : 0;
+                
+                // Vitesse angulaire (en degrés/s)
+                document.getElementById('rotAlpha').textContent = event.rotationRate.alpha ? event.rotationRate.alpha.toFixed(2) : 0;
+                document.getElementById('rotBeta').textContent = event.rotationRate.beta ? event.rotationRate.beta.toFixed(2) : 0;
+                document.getElementById('rotGamma').textContent = event.rotationRate.gamma ? event.rotationRate.gamma.toFixed(2) : 0;
+            }, true);
+        } else {
+            alert("DeviceMotionEvent non supporté sur cet appareil.");
+        }
+    </script>
+
+</body>
+</html>
