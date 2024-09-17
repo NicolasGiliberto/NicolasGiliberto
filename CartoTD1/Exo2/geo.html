@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Géolocalisation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Test de Géolocalisation</h1>
+
+    <button onclick="getCurrentLocation()">Obtenir la position actuelle</button>
+    <button onclick="startTracking()">Commencer à suivre la position</button>
+    <button onclick="stopTracking()">Arrêter le suivi</button>
+
+    <div id="output"></div>
+
+    <script>
+        // Variables pour stocker l'ID du watchPosition
+        let watchId = null;
+
+        // Fonction pour obtenir la position actuelle
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true
+                });
+            } else {
+                document.getElementById('output').innerHTML = "La géolocalisation n'est pas supportée par ce navigateur.";
+            }
+        }
+
+        // Fonction pour commencer à suivre la position
+        function startTracking() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(showPosition, showError, {
+                    enableHighAccuracy: true
+                });
+            } else {
+                document.getElementById('output').innerHTML = "La géolocalisation n'est pas supportée par ce navigateur.";
+            }
+        }
+
+        // Fonction pour arrêter le suivi
+        function stopTracking() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                document.getElementById('output').innerHTML += "<p>Le suivi a été arrêté.</p>";
+            }
+        }
+
+        // Fonction pour afficher la position et les informations associées
+        function showPosition(position) {
+            const timestamp = new Date(position.timestamp);
+            const output = `
+                <p><strong>Latitude:</strong> ${position.coords.latitude}</p>
+                <p><strong>Longitude:</strong> ${position.coords.longitude}</p>
+                <p><strong>Altitude:</strong> ${position.coords.altitude !== null ? position.coords.altitude : "Non disponible"}</p>
+                <p><strong>Précision:</strong> ${position.coords.accuracy} mètres</p>
+                <p><strong>Précision d'altitude:</strong> ${position.coords.altitudeAccuracy !== null ? position.coords.altitudeAccuracy : "Non disponible"}</p>
+                <p><strong>Vitesse:</strong> ${position.coords.speed !== null ? position.coords.speed : "Non disponible"} m/s</p>
+                <p><strong>Date:</strong> ${timestamp}</p>
+            `;
+            document.getElementById('output').innerHTML = output;
+        }
+
+        // Fonction pour gérer les erreurs de géolocalisation
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('output').innerHTML = "L'utilisateur a refusé la demande de géolocalisation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('output').innerHTML = "Les informations de localisation sont indisponibles.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('output').innerHTML = "La demande de localisation a expiré.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('output').innerHTML = "Une erreur inconnue s'est produite.";
+                    break;
+            }
+        }
+    </script>
+
+</body>
+</html>
