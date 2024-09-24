@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte des Hébergements</title>
+    <title>Carte des Départements</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
@@ -18,8 +18,8 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    // Initialisation de la carte
-    var map = L.map('map').setView([43.6936, 7.2507], 13);
+    // Initialisation de la carte centrée sur la France
+    var map = L.map('map').setView([46.603354, 1.888334], 6); // Coordonnées approximatives du centre de la France
 
     // Ajout de la couche de fond (OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -27,55 +27,31 @@
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Fonction pour récupérer les données des hébergements
-    fetch('http://opendata.nicecotedazur.org/data/storage/f/2024-09-24T06:00:34.186Z/entries-hebergement.json')
+    // Fonction pour récupérer les données GeoJSON des départements
+    fetch('https://france-geojson.gregoiredavid.fr/repo/departements.geojson')
         .then(response => response.json())
         .then(data => {
-            // Extraction des informations géographiques et des propriétés des hébergements
-            var geojsonFeatures = data.objetsTouristiques.map(objet => {
-                // Vérification de la géolocalisation
-                if (objet.localisation && objet.localisation.geolocalisation && objet.localisation.geolocalisation.valide) {
+            // Ajout des données GeoJSON à la carte (affichage des polygones des départements)
+            var geojsonLayer = L.geoJSON(data, {
+                style: function(feature) {
                     return {
-                        "type": "Feature",
-                        "properties": {
-                            "name": objet.nom.libelleFr,
-                            "popupContent": `
-                                <strong>${objet.nom.libelleFr}</strong><br>
-                                ${objet.presentation.descriptifCourt.libelleFr}<br>
-                                Téléphone: ${objet.informations.moyensCommunication.find(mc => mc.type.id === 201)?.coordonnees.fr || 'N/A'}<br>
-                                Email: ${objet.informations.moyensCommunication.find(mc => mc.type.id === 204)?.coordonnees.fr || 'N/A'}<br>
-                                Site: <a href="${objet.informations.moyensCommunication.find(mc => mc.type.id === 205)?.coordonnees.fr || '#'}">lien</a>
-                            `
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [
-                                objet.localisation.geolocalisation.geoJson.coordinates[0],
-                                objet.localisation.geolocalisation.geoJson.coordinates[1]
-                            ]
-                        }
+                        color: "#ff7800",  // Couleur du contour
+                        weight: 2,         // Épaisseur du contour
+                        opacity: 1,        // Opacité du contour
+                        fillOpacity: 0.5,  // Opacité du remplissage
+                        fillColor: "#6baed6" // Couleur de remplissage
                     };
-                }
-            }).filter(feature => feature); // Filtrer les valeurs indéfinies
-
-            // Ajout des données GeoJSON à la carte
-            var geojsonLayer = L.geoJSON(geojsonFeatures, {
-                onEachFeature: function (feature, layer) {
-                    if (feature.properties && feature.properties.popupContent) {
-                        layer.bindPopup(feature.properties.popupContent);
-                    }
                 },
-                pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, {
-                        radius: 8,
-                        fillColor: "#ff7800",
-                        color: "#000",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    });
+                onEachFeature: function (feature, layer) {
+                    // Ajouter une popup qui affiche le nom du département
+                    if (feature.properties && feature.properties.nom) {
+                        layer.bindPopup(`<strong>Département: ${feature.properties.nom}</strong>`);
+                    }
                 }
             }).addTo(map);
+
+            // Adapter la vue de la carte pour englober toutes les features (départements)
+            map.fitBounds(geojsonLayer.getBounds());
         })
         .catch(error => console.error('Erreur lors de la récupération des données:', error));
 </script>
