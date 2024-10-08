@@ -17,7 +17,7 @@ const geometry = new THREE.BoxGeometry(1, 1, 1);
 
 // Chargement de la texture pour le cube
 const textureLoader = new THREE.TextureLoader();
-const texture = textureLoader.load('CartoTD3/Exo1/italie.png');  // Assurez-vous que l'image est dans le dossier public
+const texture = textureLoader.load('/italie.png');  // Assurez-vous que l'image est dans le dossier public
 
 // Création du matériau avec la texture
 const material = new THREE.MeshStandardMaterial({ map: texture });
@@ -31,7 +31,7 @@ const loader = new GLTFLoader();
 let ballon;
 
 loader.load(
-  'CartoTD3/Exo1/football.glb',
+  'football.glb',
   function (gltf) {
     ballon = gltf.scene;
     ballon.position.set(2, 0, 0);  // Positionnement du ballon pour qu'il ne se chevauche pas avec le cube
