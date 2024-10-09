@@ -9,12 +9,12 @@
             overflow: hidden; 
         }
         canvas {
-            width: 100vw; 
+            width: 100vw;  
             height: 100vh; 
         }
     </style>
-    
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
 </head>
 <body>
     <canvas id="renderCanvas"></canvas>
@@ -30,11 +30,49 @@
            
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             light.intensity = 0.7;
-           
+
+            const texture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/italie.png", scene);
+            const sphereMaterial = new BABYLON.StandardMaterial("sphereMaterial", scene);
+            sphereMaterial.diffuseTexture = texture;
+
             const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 2, segments: 32 }, scene);
             sphere.position.y = 1;
-           
-            const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+            sphere.position.x = 1.5;
+            sphere.material = sphereMaterial;
+
+            BABYLON.SceneLoader.Append(
+                "https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/football.glb", 
+                "", 
+                scene, 
+                function (loadedScene) {
+                    loadedScene.meshes.forEach(function(mesh) {
+                        mesh.position.x = -1.5; 
+                        mesh.position.y = 0.4; 
+                    });
+                }
+            );
+
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+
+            const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+            particleSystem.particleTexture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo2/raindrop.png", scene);
+            particleSystem.emitter = new BABYLON.Vector3(0, 5, 0);
+            particleSystem.minEmitBox = new BABYLON.Vector3(-5, 0, -5);
+            particleSystem.maxEmitBox = new BABYLON.Vector3(5, 0, 5);
+
+            particleSystem.direction1 = new BABYLON.Vector3(-1, -5, 1);
+            particleSystem.direction2 = new BABYLON.Vector3(1, -5, -1);
+            particleSystem.minSize = 0.1;
+            particleSystem.maxSize = 0.2;
+            particleSystem.color1 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
+            particleSystem.color2 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
+
+            particleSystem.minLifeTime = 0.2;
+            particleSystem.maxLifeTime = 0.5;
+            particleSystem.emitRate = 1000;
+            particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+            particleSystem.start();
+
             return scene;
         };
 
