@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>My first Babylon.js app</title>
+    <title>My Babylon.js App</title>
     <style>
         body {
             margin: 0;
             overflow: hidden; 
         }
         canvas {
-            width: 100vw;  
-            height: 100vh; 
+            width: 100vw;
+            height: 100vh;
         }
     </style>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
@@ -20,63 +20,81 @@
     <canvas id="renderCanvas"></canvas>
     <script>
         const canvas = document.getElementById("renderCanvas");
-        const engine = new BABYLON.Engine(canvas, true); 
+        const engine = new BABYLON.Engine(canvas, true);
+        
+        let sphere;
 
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
-            const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+            const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 10, -20), scene);
             camera.setTarget(BABYLON.Vector3.Zero());
             camera.attachControl(canvas, true);
-           
+
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             light.intensity = 0.7;
 
-            const texture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/italie.png", scene);
-            const sphereMaterial = new BABYLON.StandardMaterial("sphereMaterial", scene);
-            sphereMaterial.diffuseTexture = texture;
-
-            const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 2, segments: 32 }, scene);
-            sphere.position.y = 1;
-            sphere.position.x = 1.5;
-            sphere.material = sphereMaterial;
-
-            BABYLON.SceneLoader.Append(
-                "https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/football.glb", 
-                "", 
-                scene, 
-                function (loadedScene) {
-                    loadedScene.meshes.forEach(function(mesh) {
-                        mesh.position.x = -1.5; 
-                        mesh.position.y = 0.4; 
-                    });
-                }
-            );
+            sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 2, segments: 32 }, scene);
 
             const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
-
-            const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
-            particleSystem.particleTexture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo2/raindrop.png", scene);
-            particleSystem.emitter = new BABYLON.Vector3(0, 5, 0);
-            particleSystem.minEmitBox = new BABYLON.Vector3(-5, 0, -5);
-            particleSystem.maxEmitBox = new BABYLON.Vector3(5, 0, 5);
-
-            particleSystem.direction1 = new BABYLON.Vector3(-1, -5, 1);
-            particleSystem.direction2 = new BABYLON.Vector3(1, -5, -1);
-            particleSystem.minSize = 0.1;
-            particleSystem.maxSize = 0.2;
-            particleSystem.color1 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
-            particleSystem.color2 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
-
-            particleSystem.minLifeTime = 0.2;
-            particleSystem.maxLifeTime = 0.5;
-            particleSystem.emitRate = 1000;
-            particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
-            particleSystem.start();
 
             return scene;
         };
 
         const scene = createScene();
+
+        const texture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/italie.png", scene);
+        const sphereMaterial = new BABYLON.StandardMaterial("sphereMaterial", scene);
+        sphereMaterial.diffuseTexture = texture;
+        sphere.material = sphereMaterial;
+
+        BABYLON.SceneLoader.Append(
+            "https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo1/football.glb", 
+            "", 
+            scene, 
+            function (loadedScene) {
+                loadedScene.meshes.forEach(function(mesh) {
+                    mesh.position.x = -3;
+                    mesh.position.y = 0.4;
+                });
+            }
+        );
+
+        const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+        particleSystem.particleTexture = new BABYLON.Texture("https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD3/Exo2/raindrop.png", scene);
+        particleSystem.emitter = new BABYLON.Vector3(0, 5, 0);
+        particleSystem.minEmitBox = new BABYLON.Vector3(-10, 0, -5);
+        particleSystem.maxEmitBox = new BABYLON.Vector3(10, 10, 5);
+
+        particleSystem.direction1 = new BABYLON.Vector3(-1, -20, 1);
+        particleSystem.direction2 = new BABYLON.Vector3(1, -5, -1);
+        particleSystem.minSize = 0.1;
+        particleSystem.maxSize = 0.2;
+        particleSystem.color1 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
+        particleSystem.color2 = new BABYLON.Color4(0.7, 0.7, 1.0, 0.5);
+
+        particleSystem.minLifeTime = 0.2;
+        particleSystem.maxLifeTime = 0.5;
+        particleSystem.emitRate = 1000;
+        particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+        particleSystem.start();
+
+        window.addEventListener('deviceorientation', function(event) {
+            const alpha = event.alpha;
+            const beta = event.beta;
+            const gamma = event.gamma;
+
+            const scaleFactor = 0.1;
+
+            let newX = (gamma / 90) * scaleFactor * 100;
+            let newY = 1 + (beta / 90) * scaleFactor * 100;
+
+            newX = Math.max(-5, Math.min(5, newX));
+            newY = Math.max(1, Math.min(5, newY));
+
+            sphere.position.x = newX;
+            sphere.position.y = newY;
+            sphere.position.z = -10;
+        });
 
         engine.runRenderLoop(function () {
             scene.render();
