@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Mon application Three.js</title>
     <style>
         body {
@@ -49,12 +49,12 @@
     const controls = new OrbitControls(camera, renderer.domElement);
 
     function latLonToCartesian(lat, lon, radius) {
-        const phi = THREE.MathUtils.degToRad(90 - lat);
-        const theta = THREE.MathUtils.degToRad(lon);
-        const x = radius * Math.sin(phi) * Math.cos(theta);
-        const y = radius * Math.sin(phi) * Math.sin(theta);
-        const z = radius * Math.cos(phi);
-        return new THREE.Vector3(x, z, y);
+        const lat_rad = THREE.MathUtils.degToRad(lat);
+        const lon_rad = THREE.MathUtils.degToRad(lon);  
+        const x = radius * Math.cos(lat_rad) * Math.cos(lon_rad);
+        const y = radius * Math.sin(lat_rad);
+        const z = radius * Math.cos(lat_rad) * Math.sin(lon_rad);
+        return new THREE.Vector3(x, y, z);
     }
 
     function getCurrentLocation() {
@@ -78,6 +78,7 @@
         const marker = new THREE.Mesh(markerGeometry, markerMaterial);
         marker.position.copy(coords);
         scene.add(marker);
+        console.log(`Position marquée : ${lat}, ${lon}`);
     }
 
     function showError(error) {
