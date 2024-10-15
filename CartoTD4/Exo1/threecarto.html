@@ -26,6 +26,8 @@
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -33,31 +35,40 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
+  
     const geometry = new THREE.SphereGeometry(1, 32, 32);
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load('https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg');
+    const texture = textureLoader.load(
+        'https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg', 
+        () => { console.log("Texture chargée avec succès."); },
+        undefined,
+        () => { console.error("Erreur lors du chargement de la texture."); }
+    );
     const material = new THREE.MeshStandardMaterial({ map: texture });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 
+    
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
 
     camera.position.z = 3;
 
+    
     const controls = new OrbitControls(camera, renderer.domElement);
 
+    
     function latLonToCartesian(lat, lon, radius) {
-        const phi = (90 - lat) * Math.PI / 180;
-        const theta = (lon + 180) * Math.PI / 180;
-        return new THREE.Vector3(
-            radius * Math.sin(phi) * Math.cos(theta),
-            radius * Math.cos(phi),
-            radius * Math.sin(phi) * Math.sin(theta)
-        );
+        const phi = (90 - lat) * Math.PI / 180;  
+        const theta = (lon + 180) * Math.PI / 180;  
+        const x = -radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+        return new THREE.Vector3(x, y, z);
     }
 
+   
     function getCurrentLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(showPosition, showError, {
@@ -68,25 +79,33 @@
         }
     }
 
+    
     function showPosition(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+        const { latitude, longitude } = position.coords;
+        const userPosition = latLonToCartesian(latitude, longitude, 1.01); 
 
-        const radius = 1; // Rayon de la sphère
-        const coords = latLonToCartesian(lat, lon, radius);
+        const loader = new GLTFLoader();
+        loader.load(
+            'https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/soldat.glb',  
+            function (gltf) {
+                const soldier = gltf.scene; 
+                soldier.position.copy(userPosition); 
+                soldier.scale.set(0.05, 0.05, 0.05); 
+                scene.add(soldier); 
+            },
+            undefined,
+            function (error) {
+                console.error('Erreur lors du chargement du modèle .glb :', error);
+            }
+        );
 
-        // Augmenter la taille du marqueur
-        const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-        const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-        marker.position.copy(coords);
-        scene.add(marker);
+    console.log(`Votre position : Latitude ${latitude}, Longitude ${longitude}`);
+}
 
-        console.log(`Latitude: ${lat}, Longitude: ${lon}`);
-    }
 
+    
     function showError(error) {
-        switch(error.code) {
+        switch (error.code) {
             case error.PERMISSION_DENIED:
                 console.error("L'utilisateur a refusé la demande de géolocalisation.");
                 break;
@@ -102,8 +121,10 @@
         }
     }
 
+   
     getCurrentLocation();
 
+    
     function animate() {
         requestAnimationFrame(animate);
         controls.update(); 
@@ -111,6 +132,7 @@
     }
 
     animate();
+
 </script>
 </body>
 </html>
