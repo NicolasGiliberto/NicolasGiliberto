@@ -25,84 +25,32 @@
 			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 			import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-			const scene = new THREE.Scene();
-			const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-			camera.position.set(2,0,5);
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setAnimationLoop(animate);
+            document.body.appendChild(renderer.domElement);
 
-			const renderer = new THREE.WebGLRenderer();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
+            const geometry = new THREE.SphereGeometry(1, 32, 32);
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load('https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg');
+            const material = new THREE.MeshStandardMaterial({ map: texture });
+            const sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
 
-			const geometry = new THREE.BoxBufferGeometry();
-			const material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-			const texture = new THREE.TextureLoader().load( 'textures/texture.jpg' );
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(1, 1, 1).normalize();
+            scene.add(light);
 
-			// immediately use the texture for material creation
-			const materialTex = new THREE.MeshPhongMaterial( { map: texture } );
+            camera.position.z = 3;
 
-			const cube = new THREE.Mesh( geometry, materialTex );
-			cube.position.set(3,0,0);
-			scene.add( cube );
+            function animate() {
+                sphere.rotation.x += 0.01;
+                sphere.rotation.y += 0.01;
+                renderer.render(scene, camera);
+            }
 
-			const controls = new OrbitControls( camera, renderer.domElement );
-
-			const geometryE = new THREE.SphereGeometry(1, 32, 32);
-			const textureE = new THREE.TextureLoader().load( './textures/2k_earth_daymap.jpg' );
-			const materialTexE = new THREE.MeshBasicMaterial( { map: textureE } );
-			const earth = new THREE.Mesh( geometryE, materialTexE );
-			earth.position.set(-5,0,0);
-			scene.add( earth ) ;
-
-
-			// Instantiate a loader
-			const loader = new GLTFLoader();
-
-			// Load a glTF resource
-			let duck ;
-			loader.load(
-				// resource URL
-				'models/Duck.gltf',
-				// called when the resource is loaded
-				function ( gltf ) {
-
-					scene.add( gltf.scene );
-					duck=gltf.scene ;
-				},
-				// called while loading is progressing
-				function ( xhr ) {
-
-					console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-				},
-				// called when loading has errors
-				function ( error ) {
-
-					console.log( 'An error happened' );
-
-				}
-			);
-
-
-			// White directional light at half intensity shining from the top.
-			const directionalLight = new THREE.DirectionalLight( 0xffffff, 1.5 );
-			scene.add( directionalLight );
-
-			const animate = function () {
-				requestAnimationFrame( animate );
-
-				cube.rotation.x += 0.01;
-				cube.rotation.y += 0.01;
-
-				renderer.render( scene, camera );
-			};
-
-			animate();
-
- if(window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', function(orientation) {
-      if(duck !== undefined) duck.rotation.set(0, -orientation.alpha * (Math.PI / 180), 0) ; ;
-    }) ;
-  }
 
 		</script>
 	</body>
