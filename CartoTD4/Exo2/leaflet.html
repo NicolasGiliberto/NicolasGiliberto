@@ -30,13 +30,6 @@
         updateGlobePosition(lat, lon);
     });
 
-    const marker = L.marker([48.8584, 2.2945]).addTo(map).bindPopup("Tour Eiffel");
-    marker.on('click', function() {
-        const lat = 48.8584;
-        const lon = 2.2945;
-        updateGlobePosition(lat, lon);
-    });
-
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -67,7 +60,7 @@
 
     function updateGlobePosition(lat, lon) {
         const position = latLonToCartesian(lat, lon, 1);
-        camera.position.set(position.x * 1.5, position.y * 1.5, position.z * 1.5);
+        camera.position.set(position.x * 2, position.y * 2, position.z * 2);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
     }
 
