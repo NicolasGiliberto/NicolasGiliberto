@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeafletJS</title>
+    <style>
+        body, html { margin: 0; height: 100%; display: flex; }
+        #map { height: 300px; width: 300px; position: absolute; bottom: 10px; left: 10px; z-index: 10; }
+        #three-container { height: 100%; width: 100%; }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/three@0.148.0/build/three.min.js"></script>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="three-container"></div>
+
+<script>
+    const map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lon = e.latlng.lng;
+        updateGlobePosition(lat, lon);
+    });
+
+    const marker = L.marker([48.8584, 2.2945]).addTo(map).bindPopup("Tour Eiffel");
+    marker.on('click', function() {
+        const lat = 48.8584;
+        const lon = 2.2945;
+        updateGlobePosition(lat, lon);
+    });
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('three-container').appendChild(renderer.domElement);
+
+    const geometry = new THREE.SphereGeometry(1, 32, 32);
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load('https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg');
+    const material = new THREE.MeshStandardMaterial({ map: texture });
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1, 1, 1).normalize();
+    scene.add(light);
+
+    camera.position.z = 3;
+
+    function latLonToCartesian(lat, lon, radius) {
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + 180) * Math.PI / 180;
+        const x = -radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+        return { x, y, z };
+    }
+
+    function updateGlobePosition(lat, lon) {
+        const position = latLonToCartesian(lat, lon, 1);
+        camera.position.set(position.x * 1.5, position.y * 1.5, position.z * 1.5);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+
+    animate();
+</script>
+</body>
+</html>
