@@ -28,106 +28,97 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-  
     const geometry = new THREE.SphereGeometry(1, 32, 32);
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(
-        'https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg', 
-        () => { console.log("Texture chargée avec succès."); },
-        undefined,
-        () => { console.error("Erreur lors du chargement de la texture."); }
-    );
+    const texture = textureLoader.load('https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/terre.jpg');
     const material = new THREE.MeshStandardMaterial({ map: texture });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 
-    
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
 
     camera.position.z = 3;
-
-    
     const controls = new OrbitControls(camera, renderer.domElement);
 
-    
     function latLonToCartesian(lat, lon, radius) {
-        const phi = (90 - lat) * Math.PI / 180;  
-        const theta = (lon + 180) * Math.PI / 180;  
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + 180) * Math.PI / 180;
         const x = -radius * Math.sin(phi) * Math.cos(theta);
         const y = radius * Math.cos(phi);
         const z = radius * Math.sin(phi) * Math.sin(theta);
         return new THREE.Vector3(x, y, z);
     }
 
-   
+    function addCountryMarker(lat, lon, flagUrl) {
+        const countryPosition = latLonToCartesian(lat, lon, 1.01);
+        const loader = new THREE.TextureLoader();
+        loader.load(flagUrl, (texture) => {
+            const markerGeometry = new THREE.SphereGeometry(0.02, 32, 32);
+            const markerMaterial = new THREE.MeshBasicMaterial({ map: texture });
+            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+            marker.position.copy(countryPosition);
+            scene.add(marker);
+        });
+    }
+
+    function getCountryData() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://restcountries.com/v3.1/all', true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const countries = JSON.parse(xhr.responseText);
+                countries.forEach(country => {
+                    if (country.latlng && country.flags && country.flags.png) {
+                        const [lat, lon] = country.latlng;
+                        const flagUrl = country.flags.png;
+                        addCountryMarker(lat, lon, flagUrl);
+                    }
+                });
+            }
+        };
+        xhr.send();
+    }
+
+    getCountryData();
+
     function getCurrentLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(showPosition, showError, {
                 enableHighAccuracy: true
             });
-        } else {
-            console.error("La géolocalisation n'est pas supportée par ce navigateur.");
         }
     }
 
-    
     function showPosition(position) {
         const { latitude, longitude } = position.coords;
-        const userPosition = latLonToCartesian(latitude, longitude, 1.01); 
+        const userPosition = latLonToCartesian(latitude, longitude, 1.01);
 
         const loader = new GLTFLoader();
-        loader.load(
-            'https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/soldat.glb',  
-            function (gltf) {
-                const soldier = gltf.scene; 
-                soldier.position.copy(userPosition); 
-                soldier.scale.set(0.05, 0.05, 0.05); 
-                scene.add(soldier); 
-            },
-            undefined,
-            function (error) {
-                console.error('Erreur lors du chargement du modèle .glb :', error);
-            }
-        );
-
-    console.log(`Votre position : Latitude ${latitude}, Longitude ${longitude}`);
-}
-
-
-    
-    function showError(error) {
-        switch (error.code) {
-            case error.PERMISSION_DENIED:
-                console.error("L'utilisateur a refusé la demande de géolocalisation.");
-                break;
-            case error.POSITION_UNAVAILABLE:
-                console.error("Les informations de localisation sont indisponibles.");
-                break;
-            case error.TIMEOUT:
-                console.error("La demande de localisation a expiré.");
-                break;
-            case error.UNKNOWN_ERROR:
-                console.error("Une erreur inconnue s'est produite.");
-                break;
-        }
+        loader.load('https://cdn.jsdelivr.net/gh/NicolasGiliberto/NicolasGiliberto/CartoTD4/Exo1/soldat.glb', function (gltf) {
+            const soldier = gltf.scene;
+            soldier.position.copy(userPosition);
+            soldier.scale.set(0.1, 0.1, 0.1);
+            scene.add(soldier);
+        });
     }
 
-   
+    function showError() {
+        console.error("Erreur lors de la récupération de la position.");
+    }
+
     getCurrentLocation();
 
-    
     function animate() {
         requestAnimationFrame(animate);
-        controls.update(); 
+        controls.update();
         renderer.render(scene, camera);
     }
 
