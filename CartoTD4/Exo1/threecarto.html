@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon application Three.js</title>
     <style>
         body {
@@ -49,12 +49,13 @@
     const controls = new OrbitControls(camera, renderer.domElement);
 
     function latLonToCartesian(lat, lon, radius) {
-        const lat_rad = THREE.MathUtils.degToRad(lat);
-        const lon_rad = THREE.MathUtils.degToRad(lon);  
-        const x = radius * Math.cos(lat_rad) * Math.cos(lon_rad);
-        const y = radius * Math.sin(lat_rad);
-        const z = radius * Math.cos(lat_rad) * Math.sin(lon_rad);
-        return new THREE.Vector3(x, y, z);
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + 180) * Math.PI / 180;
+        return new THREE.Vector3(
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.sin(theta)
+        );
     }
 
     function getCurrentLocation() {
@@ -71,14 +72,17 @@
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
 
-        const coords = latLonToCartesian(lat, lon, 1);
+        const radius = 1; // Rayon de la sphère
+        const coords = latLonToCartesian(lat, lon, radius);
 
-        const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        // Augmenter la taille du marqueur
+        const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
         const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const marker = new THREE.Mesh(markerGeometry, markerMaterial);
         marker.position.copy(coords);
         scene.add(marker);
-        console.log(`Position marquée : ${lat}, ${lon}`);
+
+        console.log(`Latitude: ${lat}, Longitude: ${lon}`);
     }
 
     function showError(error) {
@@ -107,7 +111,6 @@
     }
 
     animate();
-
 </script>
 </body>
 </html>
